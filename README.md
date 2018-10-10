@@ -24,3 +24,25 @@
 > #elseif DNXCORE50
 >   // Some alternative for .Net Core
 > #endif
+
+##Chapter 2 : Speaking C#
+- **Comment** - Ctrl + K + C
+- **Uncomment** - Ctrl + K + U
+- **Quick Replace** - Ctrl + H
+- **Replace All** - Alt + A at quick replace windows
+
+### The object type
+> object name = "Juan";
+> int length = ((string)name).Length;
+
+### Dynamic
+- Unlike object, the value stored in the variable can have its members invoked without an explicit cast.
+> dynamic anotherName = "Juan";
+> int length = anotherName.Length;
+
+### Making a value type nullable
+> int? ICouldBeNull = null;
+
+### Simplifying the usage of the console in C# 6
+> using static System.Console;
+> WriteLine("Hi");
