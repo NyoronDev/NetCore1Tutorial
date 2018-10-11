@@ -25,11 +25,12 @@
 >   // Some alternative for .Net Core
 > #endif
 
-##Chapter 2 : Speaking C#
+## Chapter 2 : Speaking C#
 - **Comment** - Ctrl + K + C
 - **Uncomment** - Ctrl + K + U
 - **Quick Replace** - Ctrl + H
 - **Replace All** - Alt + A at quick replace windows
+- **Autoformatting code** - Ctrl + K, D
 
 ### The object type
 > object name = "Juan";
@@ -46,3 +47,41 @@
 ### Simplifying the usage of the console in C# 6
 > using static System.Console;
 > WriteLine("Hi");
+
+## Chapter 3 : Controlling the Flow, Converting Types, and Handling Exceptions
+### Selection statements
+- **If Else**
+- **Switch case**
+>    var number = new Random().Next(1, 7);
+>    switch (number)
+>    {
+>        case 1:
+>            Console.WriteLine("One");
+>            break;
+>
+>        case 2:
+>            Console.WriteLine("Two");
+>            goto case 1;
+>
+>        case 3:
+>        case 4:
+>            Console.WriteLine("Three or four");
+>            goto case 1;
+>
+>        default:
+>            Console.WriteLine("Default");
+>            break;
+>    }
+- **While**
+- **Do-While**
+- **For**
+- **Foreach**
+> Works on any type that implements IEnumerable
+
+### Casting from numbers to numbers
+> double c = 9.8;
+> int d = (int)c;
+
+- Alternative to use cast is **System.Convert** type (can convert Booleans, strings and dates and times)
+> double g = 9.8;
+> int h = ToInt32(g)
