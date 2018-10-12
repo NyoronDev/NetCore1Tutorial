@@ -32,6 +32,7 @@
 - **Replace All** - Alt + A at quick replace windows
 - **Autoformatting code** - Ctrl + K, D
 - **Code Maid Autoformatting code** - Ctrl + M, Space
+- **Go to Definition** - F12
 
 ### The object type
 > object name = "Juan";
@@ -106,3 +107,17 @@
 > {
 >   Console.WriteLine("I could not parse the input.")   
 > }
+
+### The try-catch statement
+- Catching all exceptions
+> catch (Exception ex)
+
+- Catching specific exceptions
+> catch (FormatException)
+
+### Finally statemet
+- Ensure that some code executes regardless of whether an exception occurs or not.
+
+### Simplifying disposal with the using statement
+> using (var file = File.OpenWrite(@"c:\Code")) {}
+
