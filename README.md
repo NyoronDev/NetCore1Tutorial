@@ -31,6 +31,7 @@
 - **Quick Replace** - Ctrl + H
 - **Replace All** - Alt + A at quick replace windows
 - **Autoformatting code** - Ctrl + K, D
+- **Code Maid Autoformatting code** - Ctrl + M, Space
 
 ### The object type
 > object name = "Juan";
@@ -85,3 +86,23 @@
 - Alternative to use cast is **System.Convert** type (can convert Booleans, strings and dates and times)
 > double g = 9.8;
 > int h = ToInt32(g)
+
+### Converting from any type to a string
+> int number = 12;
+> Console.WriteLine(number.ToString());
+
+### Parsing from strings to numbers or dates and times
+> int age = int.Parse("27");
+> DateTime birthday = DateTime.Parse("4 July 1980");
+
+- **TryParse** - Convert the input string and returns true if it can convert it and false if it cannot.
+> int count;
+> string input = Console.Readline();
+> if (int.TryParse(input, out count))
+> {
+>   Console.WriteLine($"There are {count} eggs");     
+> }
+> else
+> {
+>   Console.WriteLine("I could not parse the input.")   
+> }
