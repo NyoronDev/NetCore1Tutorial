@@ -355,26 +355,26 @@ Deserialize(stream);
 
 ### Polymorphism
 - We can hide an inherited method using new (known as non-polymorphic inheritance) or we can override it if it is virtual (polymorphic inheritance).
->var shapes = new List<Shape>
->{
+> var shapes = new List<Shape>
+> {
 >    new Rectangle(),
 >    new Triangle(),
 >    new Circle()
->};
->
->// The virtual method Draw is
->// invoked on each of the derived classes, not the base class.
->foreach (var shape in shapes)
->{
+> };
+> 
+> // The virtual method Draw is
+> // invoked on each of the derived classes, not the base class.
+> foreach (var shape in shapes)
+> {
 >    shape.Draw(); //Draw Rectangle, Draw Triangle, Draw Circle
->}
+> }
 
 - Polymorphism (without new)
 > public override void DoWork() {};
->
+> 
 > DerivedClass B = new DerivedClass();
 > B.DoWork(); // Calls the new method
->
+> 
 > BaseClass A = (BaseClass)B;
 > A.DoWork(); // Also calls the new method
 
@@ -382,7 +382,7 @@ Deserialize(stream);
 > public new void DoWork() {};
 > DerivedClass B = new DerivedClass();
 > B.DoWork(); // Calls the new method
->
+> 
 > BaseClass A = (BaseClass)B;
 > A.DoWork(); // Calls the old method
 
@@ -418,3 +418,242 @@ Deserialize(stream);
 - With these inform the compiler that it should treat the method as a method that extends the System.String type
 > string email = "a@gmail.com";
 > email.IsValidEmail();
+
+## Chapter 8 - Working with Relational Data Using the Entity Framework
+### Using ADO.NET
+- **ADO.NET** - This is the original .Net data access technology that has classes that inherit from abstract base classes such as DbConnection and DbDataReader.
+- **ADO.NET Entity Framework** - This is a layer on top of ADO.NET that adds object-relational mapping (ORM) capabilities
+
+### Connecting to the database
+- Add System.Data.Common and System.Data.SqlClient as a Nuget packages (.Net Core)
+> var connection = new SqlConnection(@"Data Source=(localdb)\mssqllocaldb;Initial Catalog=Northwind;Integrated Security=true;");
+> connection.Open();
+
+### See all table
+> var getCategories = new SqlCommand("SELECT CategoryID, CategoryName FROM Categories", connection);
+> 
+> using (var reader = getCategories.ExecuteReader())
+> {
+>    // Find out the index positions of the columns that you want to read
+>    int indexOfID = reader.GetOrdinal("CategoryID"); // Index of the column CategoryID (0)
+>    int indexOfName = reader.GetOrdinal("CategoryName"); //Index of the column CategoryName (1)
+> 
+>    while (reader.Read())
+>    {
+>        // Use the typed GetXXX methods to efficiently read the column values
+>        Console.WriteLine($"{reader.GetInt32(indexOfID)} : {reader.GetString(indexOfName)}");
+>    }
+> }
+
+### Add new category
+> var insertCategory = new SqlCommand($"INSERT INTO Categories(CategoryName) VALUES (@NewCategoryName)", connection);
+> insertCategory.Parameters.AddWithValue("@NewCategoryName", category);
+> 
+> var rowsAffected = insertCategory.ExecuteNonQuery();
+> Console.WriteLine($"{rowsAffected} row(s) where inserted.");
+
+### Remove category
+> var removeCategory = new SqlCommand($"DELETE FROM Categories WHERE CategoryName = @DeleteCategoryName", connection);
+> removeCategory.Parameters.AddWithValue("@DeleteCategoryName", category);
+> 
+> var rowsAffected = removeCategory.ExecuteNonQuery();
+> Console.WriteLine($"{rowsAffected} row(s) where deleted.");
+
+### Entiti Framework code first conventions
+- If a connection string exists with the same name as the class derived from DbContext, then it is loaded and used to connect to the database automatically.
+- The name of a table is assumed to match the name of a DbSet<T> property in the DbContext class.
+- The names of the columns are assumed to match the names of properties in the class.
+- The string .Net type is assumed to be an nvarchar type in the database.
+- The int .Net type is assumed to be an int type in the database.
+- A property that is named **ID** or the name of the class has **ID** as the suffix, it is assumed to be a primary key.
+- If the property is any integer type or the Guid type, then it is also assumed to be an **IDENTITY** (automatically assigned value when inserting).
+
+### Querying an Entity Data Model
+> IQueryable<Products> query = database.Products.Where(product => product.UnitPrice > price).OrderByDescending(product => product.UnitPrice);
+> 
+> foreach (var item in query)
+> {
+>   Console.WriteLine($"{item.ProductID}: {item.ProductName} costs {item.UnitPrice:$#,##0.00}");
+> }
+
+### Logging SQL statements
+- We will see all the activity happening between our application and the database, including every time a connection is opened and closed.
+> database.Database.Log = new Action<string>(message => { Console.WriteLine(message); });
+
+### Inserting entities
+> var newProduct = new Products
+> {
+>   ProductName = "Bob Burger",
+>   UnitPrice = 500M
+> };
+> 
+> database.Products.Add(newProduct);
+> 
+> database.SaveChanges();
+
+### Updating entities
+> var updateProduct = database.Products.Find(78);
+> updateProduct.UnitPrice += 20M;
+> 
+> database.SaveChanges();
+
+### EF Transactions
+- Every time you call **SaveChanges** an implicit transaction is started. If every operation succeeds, then the transaction is committed.
+
+- Transactions are **ACID** 
+- **A** is for atomic. Either all the operations in the transaction commit or none of them do.
+- **C** is for consistent. The state of the database before and after a transaction is consistent.
+- **I** is for isolation. During a transaction, changes are hidden from other processes. There are multiple isolation levels.
+- **D** is for durable. If a failure occurs during a transaction, it can be recovered.
+
+### Lazy loading entities
+- Problem with lazy loading is that multiple round trips to the database server are required to eventually fetch all the data.
+> var query = db.Categories;
+> foreach (var item in query) 
+> {
+>   Console.WriteLine(item.CategoryName);  
+> }
+
+### Eager loading entities
+- Sometimes, it´s better to disable lazy loading and manually specify that all the data is brought across the network immediately using eager loading.
+> db.Configuration.LazyLoadingEnabled = false;
+> var query = db.Categories.Include("Products");
+
+### Explicit loading entities
+- It works similar to lazy loading, but you are in control of exactly which related data is loaded and when.
+> var products = db.Entry(item).Collection(c => if (!products.Isloaded) products.Load());
+
+## Chapter 9 - Querying and Manipulating Data with LINQ
+### Writing LINQ queries
+- **Extension methods** (required) These are Where, OrderBy, Select and so on.
+- **LINQ providers** (required) LINQ to Objects, LINQ to Entities, LINQ to XML, LINQ to OData, LINQ to Amazon and so on.
+- **Lambda expressions** (optional) These can be used instead of named methods to simplify LINQ extension methods calls.
+- **LINQ query comprehension syntax** (optional) These include from, in, where, orderby. descending, select, and so on.
+
+### Filtering entities with Where
+> private static bool NameLongerThanFour(string name)
+> {
+>   return name.Length > 4;
+> }
+> 
+> var names = new string[] { "Michael", "Pam", "Jim", "Dwight", "Angela", "Kevin", "Toby", "Creed" };
+> var query = names.Where(new Func<string, bool>(NameLongerThanFour));
+> 
+> foreach (var name in query)
+> {
+>   Console.WriteLine(name);
+> }
+
+- You can simplify the code
+> var query = names.Where(name => name.Length > 4);
+
+### Sorting sequences with OrderBy
+- Extension methods can be chained if the previous method returns another sequence, that is, a type that implements the IEnumerable<T> class.
+> var query = names.Where(new Func<string, bool>(NameLongerThanFour)).OrderBy(name => name.Length);
+
+### Sorting by multiple properties with the ThenBy method
+- We might want to sort the array of names by more than one property.
+> var query = names.Where(new Func<string, bool>(NameLongerThanFour)).OrderBy(name => name.Length).ThenBy(name => name);
+
+### Projecting entities with Select statement
+> var query = database.Products.Where(product => product.UnitPrice < 10M).
+>   OrderByDescending(product => product.UnitPrice).
+>   Select(product => new { product.ProductID, product.ProductName, product.UnitPrice });
+
+- The sentences implement IQueryable<T> instead of IEnumerable<T>. This is an indication that we are using a LINQ provider that uses deferred execution and builds the query in memory using expressions trees.
+- The query will not be executed until the last possible moment and only then will it be converted into another query language.
+- Enumerating the query with foreach or calling a method such as ToArray will force immediate execution of the query.
+
+### Joining and grouping
+- Join every product to its category
+> var queryJoin = categories.Join(products, category => category.CategoryID, product => product.CategoryID,
+>                                 (c, p) => new { c.CategoryName, p.ProductName, p.ProductID });
+
+- Group all products by their category to return 8 matches
+> var queryGroup = categories.GroupJoin(products, category => category.CategoryID, product => product.CategoryID,
+>                                        (c, Products) => new { c.CategoryName, Products });
+
+### Creating your own LINQ extension methods
+> public static IEnumerable<T> ProcessSequence<T>(this IEnumerable<T> sequence)
+> {
+>   return sequence;
+> }
+
+## Chapter 10 - Working with Files, Streams and Serialization
+### Managing Directories
+> Directory.CreateDirectory(dir);
+> Directory.DeleteDirectory(dir);
+
+### Managing Files
+- Write file
+> StreamWriter textWriter = File.CreateText(textFile);
+> textWriter.WriteLine("Hello C#!");
+> textWriter.Dispose();
+
+- Copy a file
+> File.Copy(textFile, backupFile, true);
+
+- Read from a text file
+> StreamReader textReader = File.OpenText(backupFile);
+> Console.WriteLine(textReader.ReadToEnd());
+> textReader.Dispose();
+
+### Managing paths
+- Path.GetFileName(textFile);
+- Path.GetFileNameWithoutExtension(textFile);
+- Path.GetExtension(textFile);
+
+### Gettings file information
+> var info = new FileInfo(backup);
+> info.Length;
+> info.LastAccessTime;
+> info.IsReadOnly;
+
+### Reading and writing with streams
+- A **stream** is a sequence of bytes.
+
+- In the following tables are some of the common members of Stream class.
+- **CanRead, CanWrite** - Determines whether you can read to and write from the stream
+- **Length, Position** - Determines the total number of bytes and the current position within the stream
+- **Close()** - Closes the stream and releases its resources
+- **Flush()** - If the stream has a buffer, then it is cleared and written to the underlying stream
+- **Read()** - Reads a specified number of bytes from the stream into a byte array and advances the position
+- **Seek()** - Moves the position to the specified position
+- **Write()** - Writes the contents of a byte array into the stream
+- **WriteByte()** - Writes a byte to the stream
+
+- **Storage streams** The following table has examples of storage stream classes
+- **FileStream** - Stored in the filesystem
+- **MemoryStream** - Stored in memory in the current process
+- **NetworkStream** - Stored at a network location
+
+- **Function stream** can only be plugged onto other streams to add functionality
+- **CryptoStream** - Encrypts and decrypts the stream
+- **GZipStream, DeflateStream** - Compresses and decompresses the stream
+- **AuthenticatedStream** - Sends credentials across the stream
+
+- Here are some helper classes to handle common scenarios
+- **StreamReader** - Reads from streams as text
+- **StreamWriter** - Writes to streams as text
+- **XmlReader** - Reads from streams as XML
+- **XmlWriter** - Writes to streams as XML
+- **BinaryReader** - Reads from streams as .Net types
+- **BinaryWriter** - Writes to streams as .Net types
+
+### Encoding text
+- .Net uses a standard called **Unicode** to encode text internally
+
+- The following table shows some alternative encodings
+- **ASCII** - Encodes a limited range of characters using the lower seven bites of a byte
+- **UTF-8** - Represents each Unicode code point as a sequence of one to four bytes
+- **UTF-16** - Represents each Unicode code point as a sequence of one or two 16-bit integers
+- **ANSI/ISO** - Provides support for a variety of code pages that are used to support a specific language
+
+> encoder = Encoding.ASCII;
+> encoder = Encoding.UTF7;
+> encoder = Encoding.UTF8
+> byte[] encoded = encoder.GetBytes(message);
+
+### Encoding and decoding text in files
+> var reader = new StreamReader(stream, Encoding.UTF7);
+> var writer = new StreamWriter(stream, Encoding.UTF7); 
