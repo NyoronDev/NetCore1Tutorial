@@ -240,7 +240,7 @@
 ### Configuring trace listeners
 -Configure two shared listeners, one that writes to a text file and another that writes to the application event log
 - Inside App.config
-><system.diagnostics>
+> <system.diagnostics>
 >    <sharedListeners>
 >      <add name="file" type="System.Diagnostics.TextWriterTraceListener" initializeData="C:\Code\Trace.text" />
 >      <add name="appeventlog" type="System.Diagnostics.EventLogTraceListener" initializeData="Application" />
@@ -656,4 +656,12 @@ Deserialize(stream);
 
 ### Encoding and decoding text in files
 > var reader = new StreamReader(stream, Encoding.UTF7);
-> var writer = new StreamWriter(stream, Encoding.UTF7); 
+> var writer = new StreamWriter(stream, Encoding.UTF7);
+
+## Chapter 11 - Protecting your Data and Applications
+### Hashing data
+- Avoid MD5 and SHA1 because they have known weaknesses. Choose a larger hash size to improve collision and primage resistance.
+
+### Authenticating and authorizing users
+- Authentication mechanisms implement a pair of interfaces: **IIdentity** and **IPrincipal**. The most common mechanism is Windows authentication.
+- You can implement your own authentication mechanism using the **GenericIdentity** and **GenericPrincipal** classes.
