@@ -665,3 +665,25 @@ Deserialize(stream);
 ### Authenticating and authorizing users
 - Authentication mechanisms implement a pair of interfaces: **IIdentity** and **IPrincipal**. The most common mechanism is Windows authentication.
 - You can implement your own authentication mechanism using the **GenericIdentity** and **GenericPrincipal** classes.
+
+## Chapter 12 - Improving Performance and Scalability with Multitasking
+### Running multiple actions asynchronously using tasks
+- Three ways to start the methods using Task instances.
+> var taskA = new Task(MethodA);
+> taskA.Start();
+> var taskB = Task.Factory.StartNew(MethodB);
+> var taskC = Task.Run(new Action(MethodC));
+
+### Waiting for tasks
+- **Wait** - Waits for this instance of the task to complete execution.
+- **WaitAny** - Waits for any of the provided task objects to complete execution
+- **WaitAll** - Waits for all of the provided task objects to complete execution
+> Task[] tasks = { taskA, taskB, taskC };
+> Task.WaitAll(tasks);
+
+### Continuing with another task
+- Simulate a call to a web service, that returns an amount that then needs to be used to retrieve how many products cost more than that amount.
+> var taskCallWebServiceAndThenStoredProcedure = Task.Factory.StartNew(CallWebService).ContinueWith(previousTask => CallStoredProcedure(previousTask.Result));
+
+### The async and await keywords
+
